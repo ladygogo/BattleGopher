@@ -15,9 +15,10 @@ type GameBoard struct {
 	MaskedBoard    [][]string
 }
 
-func (g *GameBoard) InitializeBoard() error {
+func InitializeBoard(boardDimension int) (GameBoard, error) {
+	g := GameBoard{BoardDimension: boardDimension}
 	if g.BoardDimension < 1 {
-		return errors.New("Board dimension is less than 1")
+		return GameBoard{}, errors.New("Board dimension is less than 1")
 	}
 
 	g.UnmaskedBoard = make([][]int, g.BoardDimension)
@@ -34,7 +35,7 @@ func (g *GameBoard) InitializeBoard() error {
 			g.MaskedBoard[row][col] = "?"
 		}
 	}
-	return nil
+	return g, nil
 
 }
 
