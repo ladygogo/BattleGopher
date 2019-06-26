@@ -13,8 +13,7 @@ import(
 func TestInitializeBoard(t *testing.T) {
 	randomNumber = rand.New(rand.NewSource(1))
 
-	g := GameBoard{BoardDimension: 4 }
-	err := g.InitializeBoard()
+	g, err := InitializeBoard(4)
 
 	require.NoError(t, err)
 	assert.Equal(t, 4, len(g.UnmaskedBoard))
@@ -27,9 +26,8 @@ func TestInitializeBoard(t *testing.T) {
 }
 
 func TestInitializeGameBoardInvalidBoardDimension(t *testing.T) {
-	g := GameBoard{BoardDimension: -1 }
 
-	err := g.InitializeBoard()
+	_, err := InitializeBoard(-1)
 
 	assert.Error(t, err)
 	assert.Equal(t, errors.New("Board dimension is less than 1"), err)
@@ -38,8 +36,7 @@ func TestInitializeGameBoardInvalidBoardDimension(t *testing.T) {
 func TestCheckForHitGopherFound(t *testing.T) {
 	randomNumber = rand.New(rand.NewSource(1))
 
-	g := GameBoard{BoardDimension: 4 }
-	g.InitializeBoard()
+	g, _ := InitializeBoard(4)
 
 	hit, err := g.CheckForHit(0, 0)
 
@@ -50,8 +47,7 @@ func TestCheckForHitGopherFound(t *testing.T) {
 func TestCheckForHitGopherNotFound(t *testing.T) {
 	randomNumber = rand.New(rand.NewSource(1))
 
-	g := GameBoard{BoardDimension: 4 }
-	g.InitializeBoard()
+	g, _ := InitializeBoard(4)
 
 	hit, err := g.CheckForHit(1, 1)
 
@@ -60,8 +56,7 @@ func TestCheckForHitGopherNotFound(t *testing.T) {
 }
 
 func TestCheckForHitInvalidRowDimension(t *testing.T) {
-	g := GameBoard{BoardDimension: 4 }
-	g.InitializeBoard()
+	g, _ := InitializeBoard(4)
 
 	hit, err := g.CheckForHit(-1, 1)
 
@@ -70,8 +65,7 @@ func TestCheckForHitInvalidRowDimension(t *testing.T) {
 }
 
 func TestCheckForHitInvalidColumnDimension(t *testing.T) {
-	g := GameBoard{BoardDimension: 4 }
-	g.InitializeBoard()
+	g, _ := InitializeBoard(4)
 
 	hit, err := g.CheckForHit(1, -2)
 
@@ -82,8 +76,7 @@ func TestCheckForHitInvalidColumnDimension(t *testing.T) {
 func TestAllGophersSunkTrue(t *testing.T) {
 	randomNumber = rand.New(rand.NewSource(3))
 
-	g := GameBoard{BoardDimension: 2}
-	g.InitializeBoard()
+	g, _ := InitializeBoard(2)
 
 	hit, _ := g.CheckForHit(0, 1)
 
@@ -96,8 +89,7 @@ func TestAllGophersSunkTrue(t *testing.T) {
 func TestAllGophersSunkFalse(t *testing.T) {
 	randomNumber = rand.New(rand.NewSource(3))
 
-	g := GameBoard{BoardDimension: 2}
-	g.InitializeBoard()
+	g, _ := InitializeBoard(2)
 
 	allSunk := g.AllGophersSunk()
 	assert.False(t, allSunk)
