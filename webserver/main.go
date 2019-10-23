@@ -13,6 +13,7 @@ import (
 type Session struct {
 	playerArray []player.Player
 	gameId int
+// HERE: Need to track the index of the player who currently is eligible for a turn
 }
 
 type GameInput struct {
@@ -54,6 +55,21 @@ func main() {
 // Add a Handler function with required arguments
 //func Example(w http.ResponseWriter, r *http.Request)
 func GuessHandler(w http.ResponseWriter, r *http.Request) {
+	// Create struct to hold Guess inputs and unmarshal into struct
+	// Need session_id, player_id (who is guessing), row, col
+
+
+	// Retrieve session from sessions array
+
+	// Ensure game is not over AND player_id matches eligible player's id (DetermineEligiblePlayer) and return if correct player did not guess
+
+	// Take row and column, and use *other* player's CheckForHit function; check for error
+
+	// If CheckForHit returns true, check to see if all gophers are sunk on *other* players board
+	// Else If False, increment the turn counter (in the session) (if hit, get another turn)
+
+	// Return the API response (hit: true/false, game_over: true/false ?, masked_board1: [], masked_board2: [])
+
 }
 
 func NewGameHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +108,15 @@ func NewGameHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TurnHandler(w http.ResponseWriter, r *http.Request) {
+	// Unmarshal into Session struct
 
+	// Lookup Session in array of Sessions
+
+	// Ensure game is not over
+
+	// Use DetermineEligiblePlayer to determine which player is eligible to take a turn
+
+	// Build API response (map of string to string and marshal?)
 	fmt.Println("Battle Gopher Turn Handler!")
 	fmt.Println("---------------------")
 
@@ -103,5 +127,11 @@ func APIDocHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Battle Gopher New Game Handler!")
 	fmt.Println("---------------------")
+
+}
+
+// Create function that computes the index of the player who is eligible for a turn
+func DetermineEligiblePlayer(session Session) int {
+
 
 }
