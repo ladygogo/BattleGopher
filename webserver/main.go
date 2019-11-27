@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/ladygogo/BattleGopher/player"
+	"github.com/rs/cors"
 )
 
 type Session struct {
@@ -36,23 +36,25 @@ var SessionCount = 0
 var sessions []Session
 
 func main() {
+	mux := http.NewServeMux()
+
 	// Initialize the sessions
 	sessions = make([]Session, 0, 5)
 
 	// Add router
-	router := mux.NewRouter()
-
 	// Add Handler Functions
-	router.HandleFunc("/guess", GuessHandler).Methods("POST")
-	router.HandleFunc("/newgame", NewGameHandler).Methods("POST")
-	router.HandleFunc("/turn", TurnHandler)
+	mux.HandleFunc("/guess", GuessHandler)
+	mux.HandleFunc("/newgame", NewGameHandler)
+	mux.HandleFunc("/turn", TurnHandler)
 	// Separating Turns from Guesses because remote users don't know
 	// when it's the opponent's turn...so it's for polling
-	router.HandleFunc("/", APIDocHandler)
+	mux.HandleFunc("/", APIDocHandler)
 
 	// Start the webserver
 	fmt.Println("Listening")
-	http.ListenAndServe(":8080", router)
+
+	handler := cors.Default().Handler(mux)
+	http.ListenAndServe(":8080", handler)
 }
 
 // Add a Handler function with required arguments
