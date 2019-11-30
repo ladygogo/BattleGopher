@@ -32,6 +32,10 @@ type GuessInput struct {
 	Col       int `json:"col"`
 }
 
+type TurnInput struct {
+	SessionId int `json:"session_id"`
+}
+
 var SessionCount = 0
 var sessions []Session
 
@@ -51,10 +55,10 @@ func main() {
 	mux.HandleFunc("/", APIDocHandler)
 
 	// Start the webserver
-	fmt.Println("Listening")
+	fmt.Println("Listening...")
 
 	handler := cors.Default().Handler(mux)
-	http.ListenAndServe(":8080", handler)
+	http.ListenAndServe("localhost:8080", handler)
 }
 
 // Add a Handler function with required arguments
@@ -71,6 +75,9 @@ func GuessHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("unmarshal errr is: ", err)
 	}
+
+	fmt.Println("Received Guess: ", guessInput)
+
 	// Need session_id, player_id (who is guessing), row, col
 
 	// Retrieve session from sessions array
@@ -83,6 +90,7 @@ func GuessHandler(w http.ResponseWriter, r *http.Request) {
 	playerId := DetermineEligiblePlayer(*session)
 	if playerId != guessInput.PlayerId {
 		fmt.Println("Not this player's turn!!!")
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 	// Take row and column, and use *other* player's CheckForHit function; check for error
@@ -123,6 +131,9 @@ func NewGameHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &gameInput)
 	if err != nil {
 		fmt.Println("unmarshal errr is: ", err)
+		fmt.Printf("%s\n", body)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
 	}
 
 	session := Session{gameId: SessionCount, playerArray: []player.Player{}}
@@ -146,21 +157,41 @@ func NewGameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(response)
+
+	fmt.Printf("Started new game: %v", session)
 }
 
 func TurnHandler(w http.ResponseWriter, r *http.Request) {
 	// Unmarshal into Session struct
+	var turnInput TurnInput
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Println("errr is: ", err)
+	}
+	err = json.Unmarshal(body, &turnInput)
+	if err != nil {
+		fmt.Println("unmarshal errr is: ", err)
+		fmt.Printf("%s\n", body)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
 
 	// Lookup Session in array of Sessions
+	session := &sessions[turnInput.SessionId]
 
 	// Ensure game is not over
 
 	// Use DetermineEligiblePlayer to determine which player is eligible to take a turn
+	playerID := DetermineEligiblePlayer(*session)
 
 	// Build API response (map of string to string and marshal?)
-	fmt.Println("Battle Gopher Turn Handler!")
-	fmt.Println("---------------------")
-
+	response, err := json.Marshal(playerID)
+	if err != nil {
+		fmt.Println("error marshaling", err)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 }
 
 func APIDocHandler(w http.ResponseWriter, r *http.Request) {
