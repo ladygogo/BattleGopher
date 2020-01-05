@@ -69,11 +69,17 @@ func GuessHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		fmt.Println("errr is: ", err)
+		w.WriteHeader(http.StatusBadRequest)
+		errorResponse, _ := json.Marshal(err)
+		w.Write(errorResponse)
+		return
 	}
 	err = json.Unmarshal(body, &guessInput)
 	if err != nil {
-		fmt.Println("unmarshal errr is: ", err)
+		w.WriteHeader(http.StatusBadRequest)
+		errorResponse, _ := json.Marshal(err)
+		w.Write(errorResponse)
+		return
 	}
 
 	fmt.Println("Received Guess: ", guessInput)
@@ -82,7 +88,10 @@ func GuessHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Retrieve session from sessions array
 	if guessInput.SessionId >= len(sessions) {
-		fmt.Println("Invalid session id")
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		errorMessage, _ := json.Marshal("{\"error\": \"Invalid session_id\"}")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(errorMessage)
 		return
 	}
 	session := &sessions[guessInput.SessionId]
@@ -91,6 +100,17 @@ func GuessHandler(w http.ResponseWriter, r *http.Request) {
 	if playerId != guessInput.PlayerId {
 		fmt.Println("Not this player's turn!!!")
 		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	if gameOver(*session) {
+		w.WriteHeader(http.StatusForbidden)
+		errorMessage, err := json.Marshal("The game is over")
+		//errorMessage, err := json.Marshal("{\"error\": \"The game is over\"}")
+		if err != nil {
+			fmt.Println("err is", err)
+		}
+		w.Write(errorMessage)
 		return
 	}
 	// Take row and column, and use *other* player's CheckForHit function; check for error
@@ -204,4 +224,13 @@ func APIDocHandler(w http.ResponseWriter, r *http.Request) {
 // Create function that computes the index of the player who is eligible for a turn
 func DetermineEligiblePlayer(session Session) int {
 	return session.turnId % 2
+}
+
+func gameOver(session Session) bool {
+	for _, p := range session.playerArray {
+		if p.Gameboard.AllGophersSunk() {
+			return true
+		}
+	}
+	return false
 }
